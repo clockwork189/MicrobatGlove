@@ -25,9 +25,15 @@ void setup() {
 void loop() {
   delay(100);                      // Wait 50ms between pings (about 20 pings/sec). 29ms should be the shortest delay between pings.
   unsigned int distance1 = sonar1.ping_cm(); // Send ping, get ping time in microseconds (uS).
-  analogWrite(buzzer1Pin, MAX_DISTANCE - distance1); 
-  analogWrite(buzzer2Pin, MAX_DISTANCE - distance1); 
-  analogWrite(buzzer3Pin, MAX_DISTANCE - distance1); 
+  if(distance1 < 100) {  
+    analogWrite(buzzer1Pin, MAX_DISTANCE - distance1); 
+    analogWrite(buzzer2Pin, MAX_DISTANCE - distance1); 
+    analogWrite(buzzer3Pin, MAX_DISTANCE - distance1); 
+  } else {
+    analogWrite(buzzer1Pin, 0); 
+    analogWrite(buzzer2Pin, 0); 
+    analogWrite(buzzer3Pin, 0); 
+  }
 //  unsigned int distance2 = sonar2.ping_cm(); // Send ping, get ping time in microseconds (uS).
   Serial.print("Ping Distance 1: ");
   Serial.print(distance1); // Convert ping time to distance and print result (0 = outside set distance range, no ping echo)
