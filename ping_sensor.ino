@@ -1,45 +1,47 @@
 #include <NewPing.h>
 
-// ---------------------------------------------------------------------------
-// Example NewPing library sketch that does a ping about 20 times per second.
-// ---------------------------------------------------------------------------
+#define TRIGGER_PIN  12  // Arduino pin tied to trigger pin on the ultrasonic sensor.
+#define ECHO_PIN     11  // Arduino pin tied to echo pin on the ultrasonic sensor.
+#define MAX_DISTANCE 400 // Maximum distance we want to ping for (in centimeters). Maximum sensor distance is rated at 400-500cm.
+#define MAX_POWER 255 // Maximum distance we want to ping for (in centimeters). Maximum sensor distance is rated at 400-500cm.
+#define buzzer1Pin 9
 
-#include <NewPing.h>
 
-#define TRIGGER_PIN1  6  // Arduino pin tied to trigger pin on the ultrasonic sensor.
-#define ECHO_PIN1     7  // Arduino pin tied to echo pin on the ultrasonic sensor.
-#define TRIGGER_PIN2  12  // Arduino pin tied to trigger pin on the ultrasonic sensor.
-#define ECHO_PIN2     13  // Arduino pin tied to echo pin on the ultrasonic sensor.
-#define MAX_DISTANCE 255 // Maximum distance we want to ping for (in centimeters). Maximum sensor distance is rated at 400-500cm.
-#define buzzer1Pin 8
-#define buzzer2Pin 9
-#define buzzer3Pin 10
+NewPing sonar(TRIGGER_PIN, ECHO_PIN); // NewPing setup of pins and maximum distance.
 
-NewPing sonar1(TRIGGER_PIN1, ECHO_PIN1, MAX_DISTANCE); // NewPing setup of pins and maximum distance.
-//NewPing sonar2(TRIGGER_PIN2, ECHO_PIN2, MAX_DISTANCE); // NewPing setup of pins and maximum distance.
+int power = 0;
 
 void setup() {
   Serial.begin(9600); // Open serial monitor at 115200 baud to see ping results.
 }
 
 void loop() {
-  delay(100);                      // Wait 50ms between pings (about 20 pings/sec). 29ms should be the shortest delay between pings.
-  unsigned int distance1 = sonar1.ping_cm(); // Send ping, get ping time in microseconds (uS).
-  if(distance1 < 100) {  
-    analogWrite(buzzer1Pin, MAX_DISTANCE - distance1); 
-    analogWrite(buzzer2Pin, MAX_DISTANCE - distance1); 
-    analogWrite(buzzer3Pin, MAX_DISTANCE - distance1); 
+  delay(50);                      // Wait 50ms between pings (about 20 pings/sec). 29ms should be the shortest delay between pings.
+  unsigned int distance = sonar.ping_cm(); // Send ping, get ping time in microseconds (uS).
+  unsigned int power = MAX_POWER - (2 * distance);
+  if(distance < MAX_DISTANCE) {
+      if(distance > 5) {
+          // fade out from max to min in increments of 5 points:
+          for(int fadeValue = 0 ; fadeValue <= MAX_POWER; fadeValue +=3) { 
+            // sets the value (range from 0 to 255):
+            analogWrite(buzzer1Pin, fadeValue);         
+            // wait for 30 milliseconds to see the dimming effect    
+            delay(5);                            
+          } 
+          // fade out from max to min in increments of 5 points:
+          for(int fadeValue = MAX_POWER ; fadeValue >= 0; fadeValue -=3) { 
+            // sets the value (range from 0 to 255):
+            analogWrite(buzzer1Pin, fadeValue);         
+            // wait for 30 milliseconds to see the dimming effect    
+            delay(5);                            
+          }
+      } else {
+          analogWrite(buzzer1Pin, 0);
+      }
   } else {
-    analogWrite(buzzer1Pin, 0); 
-    analogWrite(buzzer2Pin, 0); 
-    analogWrite(buzzer3Pin, 0); 
+      analogWrite(buzzer1Pin, 0);
   }
-//  unsigned int distance2 = sonar2.ping_cm(); // Send ping, get ping time in microseconds (uS).
-  Serial.print("Ping Distance 1: ");
-  Serial.print(distance1); // Convert ping time to distance and print result (0 = outside set distance range, no ping echo)
-  Serial.println("cm");
   
-//  Serial.print("Ping Distance 2: ");
-  //Serial.print(distance2); // Convert ping time to distance and print result (0 = outside set distance range, no ping echo)
-//  Serial.println("cm");
+  Serial.print("POWER:");
+  Serial.println(power); // Convert ping time to distance and print result (0 = outside set distance range, no ping echo)
 }
